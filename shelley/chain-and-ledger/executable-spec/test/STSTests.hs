@@ -5,6 +5,7 @@ module STSTests (stsTests) where
 
 import           Data.Either (isRight)
 import qualified Data.Map.Strict as Map (empty, singleton)
+import           Data.Ratio (approxRational)
 import           Test.Tasty (TestTree, testGroup)
 import           Test.Tasty.HUnit (Assertion, assertBool, testCase, (@?=))
 
@@ -14,7 +15,7 @@ import           MockTypes (CHAIN)
 import           MultiSigExamples (aliceAndBob, aliceAndBobOrCarl, aliceAndBobOrCarlAndDaria,
                      aliceAndBobOrCarlOrDaria, aliceOnly, aliceOrBob, applyTxWithScript, bobOnly)
 
-import           BaseTypes (Seed (..), (⭒))
+import           BaseTypes (FixedPoint, Seed (..), (⭒))
 import           Control.State.Transition (TRC (..), applySTS)
 import           Control.State.Transition.Trace (checkTrace, (.-), (.->))
 import           Slot (Slot (..))
@@ -89,6 +90,9 @@ testCHAINExample3B = testCHAINExample ex3B
 testCHAINExample3C :: Assertion
 testCHAINExample3C = testCHAINExample ex3C
 
+testApproxRational :: Assertion
+testApproxRational = approxRational (1 ::FixedPoint) 10 @?= 1
+
 stsTests :: TestTree
 stsTests = testGroup "STS Tests"
   [ testCase "update nonce early in the epoch" testUPNEarly
@@ -132,6 +136,7 @@ stsTests = testGroup "STS Tests"
   , testCase "FAIL: withdraw from script locked account" testRwdAliceSignsAlone'
   , testCase "withdraw from script locked account, different script" testRwdAliceSignsAlone''
   , testCase "FAIL: withdraw from script locked account, signed, missing script" testRwdAliceSignsAlone'''
+  , testCase "Approximate Rational" testApproxRational
   ]
 
 testAliceSignsAlone :: Assertion
