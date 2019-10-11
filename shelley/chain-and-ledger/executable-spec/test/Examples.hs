@@ -95,7 +95,7 @@ import           LedgerState (AccountState (..), pattern DPState, pattern EpochS
                      _retiring, _rewards, _stkCreds, _stPools, _treasury)
 import           OCert (KESPeriod (..), pattern OCert)
 import           PParams (PParams (..), emptyPParams)
-import           Slot (Epoch (..), Slot (..))
+import           Slot (Epoch (..), Slot (..), BlockNo(..))
 import           STS.Chain (pattern ChainState)
 import           TxData (pattern AddrBase, pattern AddrPtr, pattern Delegation, pattern KeyHashObj,
                      pattern PoolParams, Ptr (..), pattern RewardAcnt, pattern StakeCreds,
@@ -261,12 +261,13 @@ mkBlock
   -> AllPoolKeys
   -> [Tx]
   -> Slot
+  -> BlockNo
   -> Nonce
   -> NatNonce
   -> UnitInterval
   -> Natural
   -> Block
-mkBlock prev pkeys txns s enonce (NatNonce bnonce) l kesPeriod =
+mkBlock prev pkeys txns s blockNo enonce (NatNonce bnonce) l kesPeriod =
   let
     (shot, vhot) = hot pkeys
     nonceNonce = mkSeed seedEta s enonce prev
@@ -276,6 +277,7 @@ mkBlock prev pkeys txns s enonce (NatNonce bnonce) l kesPeriod =
             (vKey $ cold pkeys)
             (snd $ vrf pkeys)
             s
+            blockNo
             (coerce $ mkCertifiedVRF (WithResult nonceNonce bnonce) (fst $ vrf pkeys))
             (coerce $ mkCertifiedVRF (WithResult leaderNonce $ unitIntervalToNatural l) (fst $ vrf pkeys))
             (fromIntegral $ bBodySize $ (TxSeq . fromList) txns)
@@ -407,6 +409,7 @@ blockEx1 = mkBlock
              (coreNodeKeys 0)
              []
              (Slot 1)
+             (BlockNo 1)
              (mkNonce 0)
              (NatNonce 1)
              zero
@@ -521,6 +524,7 @@ blockEx2A = mkBlock
              (coreNodeKeys 6)
              [txEx2A]
              (Slot 10)
+             (BlockNo 10)
              (mkNonce 0)
              (NatNonce 1)
              zero
@@ -615,6 +619,7 @@ blockEx2B = mkBlock
              (coreNodeKeys 3)
              [txEx2B]
              (Slot 90)
+             (BlockNo 2)
              (mkNonce 0)
              (NatNonce 2)
              zero
@@ -696,6 +701,7 @@ blockEx2C = mkBlock
              (coreNodeKeys 6)
              []
              (Slot 110)
+             (BlockNo 2)
              (mkNonce 0)
              (NatNonce 3)
              zero
@@ -811,6 +817,7 @@ blockEx2D = mkBlock
              (coreNodeKeys 3)
              []
              (Slot 190)
+             (BlockNo 2)
              (mkNonce 0 ⭒ mkNonce 1)
              (NatNonce 4)
              zero
@@ -855,6 +862,7 @@ blockEx2E = mkBlock
              (coreNodeKeys 3)
              []
              (Slot 220)
+             (BlockNo 2)
              (mkSeqNonce 3)
              (NatNonce 5)
              zero
@@ -925,6 +933,7 @@ blockEx2F = mkBlock
              alicePool
              []
              (Slot 295) -- odd slots open for decentralization in epoch1OSchedEx2E
+             (BlockNo 2)
              (mkSeqNonce 3)
              (NatNonce 6)
              zero
@@ -972,6 +981,7 @@ blockEx2G = mkBlock
              (coreNodeKeys 6)
              []
              (Slot 310)
+             (BlockNo 2)
              (mkSeqNonce 5)
              (NatNonce 7)
              zero
@@ -1030,6 +1040,7 @@ blockEx2H = mkBlock
              (coreNodeKeys 3)
              []
              (Slot 390)
+             (BlockNo 2)
              (mkSeqNonce 5)
              (NatNonce 8)
              zero
@@ -1083,6 +1094,7 @@ blockEx2I = mkBlock
               (coreNodeKeys 6)
               []
               (Slot 410)
+              (BlockNo 2)
               (mkSeqNonce 7)
               (NatNonce 9)
               zero
@@ -1176,6 +1188,7 @@ blockEx2J = mkBlock
               (coreNodeKeys 3)
               [txEx2J]
               (Slot 420)
+              (BlockNo 2)
               (mkSeqNonce 7)
               (NatNonce 10)
               zero
@@ -1254,6 +1267,7 @@ blockEx2K = mkBlock
               (coreNodeKeys 3)
               [txEx2K]
               (Slot 490)
+              (BlockNo 2)
               (mkSeqNonce 7)
               (NatNonce 11)
               zero
@@ -1318,6 +1332,7 @@ blockEx2L = mkBlock
               (coreNodeKeys 6)
               []
               (Slot 510)
+              (BlockNo 2)
               (mkSeqNonce 10)
               (NatNonce 12)
               zero
@@ -1421,6 +1436,7 @@ blockEx3A = mkBlock
              (coreNodeKeys 6)
              [txEx3A]
              (Slot 10)
+             (BlockNo 2)
              (mkNonce 0)
              (NatNonce 1)
              zero
@@ -1507,6 +1523,7 @@ blockEx3B = mkBlock
              (coreNodeKeys 3)
              [txEx3B]
              (Slot 20)
+             (BlockNo 2)
              (mkNonce 0)
              (NatNonce 2)
              zero
@@ -1567,6 +1584,7 @@ blockEx3C = mkBlock
              (coreNodeKeys 6)
              []
              (Slot 110)
+             (BlockNo 2)
              (mkSeqNonce 2)
              (NatNonce 3)
              zero
@@ -1670,6 +1688,7 @@ blockEx4A = mkBlock
              (coreNodeKeys 6)
              [txEx4A]
              (Slot 10)
+             (BlockNo 2)
              (mkNonce 0)
              (NatNonce 1)
              zero
@@ -1755,6 +1774,7 @@ blockEx4B = mkBlock
              (coreNodeKeys 3)
              [txEx4B]
              (Slot 20)
+             (BlockNo 2)
              (mkNonce 0)
              (NatNonce 2)
              zero
@@ -1815,6 +1835,7 @@ blockEx4C = mkBlock
              (coreNodeKeys 0)
              []
              (Slot 60)
+             (BlockNo 2)
              (mkNonce 0)
              (NatNonce 3)
              zero
@@ -1901,6 +1922,7 @@ blockEx5A = mkBlock
               (coreNodeKeys 6)
               [txEx5A]
               (Slot 10)
+              (BlockNo 2)
               (mkNonce 0)
               (NatNonce 1)
               zero
@@ -1958,6 +1980,7 @@ blockEx5B = mkBlock
              (coreNodeKeys 2)
              []
              (Slot 50)
+             (BlockNo 2)
              (mkNonce 0)
              (NatNonce 2)
              zero
