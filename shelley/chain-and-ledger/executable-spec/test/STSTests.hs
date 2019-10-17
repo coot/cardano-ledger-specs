@@ -20,7 +20,7 @@ import           Control.State.Transition (TRC (..), applySTS)
 import           Control.State.Transition.Trace (checkTrace, (.-), (.->))
 import           Slot (Slot (..))
 import           STS.Chain (totalAda)
-import           STS.Updn (UPDN, UpdnState (..))
+import           STS.Updn (UPDN, UpdnEnv(..), UpdnState (..))
 import           STS.Utxow (PredicateFailure (..))
 import           Tx (hashScript)
 import           TxData (pattern RewardAcnt, pattern ScriptHashObj)
@@ -34,9 +34,14 @@ import           TxData (pattern RewardAcnt, pattern ScriptHashObj)
 testUPNEarly :: Assertion
 testUPNEarly =
   let
-    st = applySTS @UPDN (TRC (mkNonce 1, UpdnState (mkNonce 2) (mkNonce 3), Slot.Slot 5))
+    st = applySTS @UPDN
+        ( TRC ( UpdnEnv (mkNonce 1) (error "Not needed now") False
+              , UpdnState (mkNonce 0) (mkNonce 2) (mkNonce 3)
+              , Slot.Slot 5
+              )
+        )
   in
-    st @?= Right (UpdnState (mkNonce 2 ⭒ mkNonce 1) (mkNonce 2 ⭒ mkNonce 1))
+    st @?= Right (UpdnState (mkNonce 0) (mkNonce 2 ⭒ mkNonce 1) (mkNonce 2 ⭒ mkNonce 1))
 
 -- | The UPDN transition should update only the evolving nonce
 -- in the last thirds of the epoch.
@@ -44,9 +49,14 @@ testUPNEarly =
 testUPNLate :: Assertion
 testUPNLate =
   let
-    st = applySTS @UPDN (TRC (mkNonce 1, UpdnState (mkNonce 2) (mkNonce 3), Slot.Slot 85))
+    st = applySTS @UPDN
+          ( TRC ( UpdnEnv (mkNonce 1) (error "Not needed now") False
+                , UpdnState (mkNonce 0) (mkNonce 2) (mkNonce 3)
+                , Slot.Slot 85
+                )
+          )
   in
-    st @?= Right (UpdnState ((mkNonce 2) ⭒ (mkNonce 1)) (mkNonce 3))
+    st @?= Right (UpdnState (mkNonce 0) ((mkNonce 2) ⭒ (mkNonce 1)) (mkNonce 3))
 
 testCHAINExample :: CHAINExample -> Assertion
 testCHAINExample (CHAINExample slotNow initSt block expectedSt) = do
